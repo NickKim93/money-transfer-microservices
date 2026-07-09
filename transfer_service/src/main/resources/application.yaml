@@ -1,0 +1,10 @@
+server:
+  port: 8082
+clients:
+  account-service:
+    # base-url задаётся в профиле (local / docker) — адрес account-service отличается
+    connect-timeout: 3s
+    read-timeout: 5s
+spring:
+  application:
+    name: transfer_service

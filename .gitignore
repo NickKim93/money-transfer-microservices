@@ -1,0 +1,14 @@
+# Secrets — реальные значения окружения не коммитим (шаблон: .env.example)
+.env
+
+# Локальные данные Postgres (на случай bind-mount; compose использует named-volume)
+data/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build
+target/
+build/
