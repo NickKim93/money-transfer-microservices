@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.myapp.account_service.exception.AccountNotFoundException;
+import com.myapp.account_service.exception.DuplicateTransferMessageException;
 import com.myapp.account_service.exception.InsufficientFundsException;
 import com.myapp.account_service.messaging.RabbitNames;
 import com.myapp.account_service.messaging.dto.TransferRequestedMessage;
@@ -30,7 +31,7 @@ public class TransferRequestedListener {
     public void handleTransferRequested(TransferRequestedMessage message) {
         log.info("Received transfer requested message: {}", message);
         try {
-            accountService.transfer(message.fromAccountId(), message.toAccountId(), message.amount());
+            accountService.transfer(message.transferId(), message.fromAccountId(), message.toAccountId(), message.amount());
             transferResultPublisher.publishTransferResult(
                 new TransferResultMessage(UUID.randomUUID(),message.transferId(), TransferOutcome.COMPLETED, null, Instant.now())
             );
@@ -44,6 +45,11 @@ public class TransferRequestedListener {
             log.error("Insufficient funds: {}", e.getMessage());
             transferResultPublisher.publishTransferResult(
                 new TransferResultMessage(UUID.randomUUID(),message.transferId(), TransferOutcome.FAILED, e.getMessage(), Instant.now())
+            );
+        } catch (DuplicateTransferMessageException e) {
+            log.info("Duplicate transfer, already processed, re-publishing COMPLETED: {}", message.transferId());
+            transferResultPublisher.publishTransferResult(
+                new TransferResultMessage(UUID.randomUUID(),message.transferId(), TransferOutcome.COMPLETED, null, Instant.now())
             );
         } catch (Exception e) {
             log.error("Error processing transfer: {}", e.getMessage());

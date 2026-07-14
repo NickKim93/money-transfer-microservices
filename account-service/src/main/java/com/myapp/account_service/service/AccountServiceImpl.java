@@ -1,29 +1,31 @@
 package com.myapp.account_service.service;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.myapp.account_service.dto.request.AccountCreateRequestDTO;
+import com.myapp.account_service.dto.request.DepositRequestDto;
+import com.myapp.account_service.dto.request.WithdrawRequestDto;
 import com.myapp.account_service.dto.response.AccountResponseDTO;
 import com.myapp.account_service.dto.response.BalanceSumResponseDTO;
 import com.myapp.account_service.exception.AccountNotFoundException;
 import com.myapp.account_service.model.Account;
 import com.myapp.account_service.repository.AccountRepository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
-import java.math.BigDecimal;
-
-import com.myapp.account_service.dto.request.WithdrawRequestDto;
-import com.myapp.account_service.dto.request.DepositRequestDto;
 
 @Service
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
 
+    private final IdempotencyService idempotencyService;
 
-    public AccountServiceImpl(AccountRepository accountRepository) {
+
+    public AccountServiceImpl(AccountRepository accountRepository, IdempotencyService idempotencyService) {
         this.accountRepository = accountRepository;
+        this.idempotencyService = idempotencyService;
     }
 
     @Override
@@ -72,12 +74,15 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    public AccountResponseDTO transfer(UUID fromAccountId, UUID toAccountId, BigDecimal amount) {
+    public AccountResponseDTO transfer(UUID transferId, UUID fromAccountId, UUID toAccountId, BigDecimal amount) {
+
+        idempotencyService.markProcessed(transferId);
+
         Account fromAccount = accountRepository.findById(fromAccountId)
             .orElseThrow(() -> new AccountNotFoundException(fromAccountId));
         Account toAccount = accountRepository.findById(toAccountId)
             .orElseThrow(() -> new AccountNotFoundException(toAccountId));
-
+        
         fromAccount.withdraw(amount);
         toAccount.deposit(amount);
 

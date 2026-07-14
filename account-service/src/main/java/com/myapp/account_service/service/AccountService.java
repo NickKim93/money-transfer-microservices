@@ -15,5 +15,5 @@ public interface AccountService {
     AccountResponseDTO createAccount(AccountCreateRequestDTO accountRequestDTO);
     AccountResponseDTO withdraw(UUID accountId, WithdrawRequestDto withdrawRequestDto);
     AccountResponseDTO deposit(UUID accountId, DepositRequestDto depositRequestDto);
-    AccountResponseDTO transfer(UUID fromAccountId, UUID toAccountId, BigDecimal amount);
+    AccountResponseDTO transfer(UUID transferId, UUID fromAccountId, UUID toAccountId, BigDecimal amount);
 }

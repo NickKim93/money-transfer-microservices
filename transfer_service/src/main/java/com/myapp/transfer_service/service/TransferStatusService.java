@@ -1,5 +1,7 @@
 package com.myapp.transfer_service.service;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import com.myapp.transfer_service.dto.request.TransferRequestDto;
@@ -10,8 +12,6 @@ import com.myapp.transfer_service.repository.TransferRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +42,9 @@ public class TransferStatusService {
     @Transactional
     public Transfer markFailed(UUID transferId, String failReason) {
         Transfer transfer = getTransferOrThrow(transferId);
+        if (transfer.getStatus() == Status.COMPLETED) {
+            throw new IllegalStateException("Cannot mark a completed transfer as failed.");
+        }
         transfer.setStatus(Status.FAILED);
         transfer.setFailureReason(failReason);
         return transferRepository.save(transfer);
