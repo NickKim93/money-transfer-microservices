@@ -18,11 +18,6 @@ public class IdempotencyService {
 
     private final ProcessedTransferRepository processedTransferRepository;
 
-    /**
-     * Помечает transferId как обработанный. Вызывается ВНУТРИ транзакции движения
-     * денег (не открывает свою), чтобы отметка и эффект коммитились атомарно.
-     * Повторный transferId нарушает PK -> DuplicateTransferMessageException.
-     */
     public void markProcessed(UUID transferId) {
         try {
             processedTransferRepository.saveAndFlush(new ProcessedTransfer(transferId, Instant.now()));
