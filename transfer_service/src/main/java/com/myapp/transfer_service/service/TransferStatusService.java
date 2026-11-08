@@ -12,11 +12,18 @@ import com.myapp.transfer_service.repository.TransferRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Переходы статуса перевода. Result-события приходят at-least-once,
+ * поэтому переходы защищены гвардом: из терминального статуса не уходим,
+ * повтор в тот же статус — no-op.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransferStatusService {
-    
+
     private final TransferRepository transferRepository;
 
     @Transactional
@@ -28,13 +35,16 @@ public class TransferStatusService {
             .status(Status.PENDING)
             .amount(request.amount())
             .build();
-        
+
         return transferRepository.save(transfer);
     }
 
     @Transactional
     public Transfer markCompleted(UUID transferId) {
         Transfer transfer = getTransferOrThrow(transferId);
+        if (!canTransition(transfer, Status.COMPLETED)) {
+            return transfer;
+        }
         transfer.setStatus(Status.COMPLETED);
         return transferRepository.save(transfer);
     }
@@ -42,8 +52,8 @@ public class TransferStatusService {
     @Transactional
     public Transfer markFailed(UUID transferId, String failReason) {
         Transfer transfer = getTransferOrThrow(transferId);
-        if (transfer.getStatus() == Status.COMPLETED) {
-            throw new IllegalStateException("Cannot mark a completed transfer as failed.");
+        if (!canTransition(transfer, Status.FAILED)) {
+            return transfer;
         }
         transfer.setStatus(Status.FAILED);
         transfer.setFailureReason(failReason);
@@ -53,5 +63,24 @@ public class TransferStatusService {
     public Transfer getTransferOrThrow(UUID transferId) {
         return transferRepository.findById(transferId)
                 .orElseThrow(() -> new TransferNotFoundException(transferId));
+    }
+
+    /**
+     * Повтор в тот же терминальный статус — штатный дубль (info).
+     * Попытка уйти из одного терминального статуса в другой — аномалия (warn),
+     * но не исключение: иначе листенер уйдёт в бесконечный redelivery.
+     */
+    private boolean canTransition(Transfer transfer, Status target) {
+        Status current = transfer.getStatus();
+        if (!current.isTerminal()) {
+            return true;
+        }
+        if (current == target) {
+            log.info("Transfer {} already {}, no-op", transfer.getId(), current);
+        } else {
+            log.warn("Transfer {} is {} (terminal), ignoring transition to {}",
+                    transfer.getId(), current, target);
+        }
+        return false;
     }
 }

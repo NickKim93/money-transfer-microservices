@@ -3,5 +3,9 @@ package com.myapp.transfer_service.model;
 public enum Status {
     PENDING,
     COMPLETED,
-    FAILED
+    FAILED;
+
+    public boolean isTerminal() {
+        return this == COMPLETED || this == FAILED;
+    }
 }
