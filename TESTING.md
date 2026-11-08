@@ -1,4 +1,45 @@
-# Ручной прогон стека в контейнерах (День 5)
+# Прогон стека
+
+## W3 Day 1 — путь `transfer.requested` на Kafka
+
+Приёмка автоматизирована: каждый сценарий сам проверяет результат и падает с `exit 1`.
+
+```bash
+cp .env.example .env                       # один раз
+scripts/acceptance-w3d1.sh                 # все: up happy message durability duplicate replay
+scripts/acceptance-w3d1.sh duplicate       # отдельный сценарий
+scripts/acceptance-w3d1.sh failed-replay   # опционально: демонстрация known gap (меняет балансы)
+```
+
+Отладка руками — `scripts/kafka.sh topics | describe | consume | group | reset-earliest | produce`,
+глазами — kafka-ui на http://localhost:8090.
+
+| # | Сценарий | Что проверяется | Результат |
+|---|---|---|---|
+| 1 | `up` | `docker compose up --build --wait`: все контейнеры healthy/running, сервисы отвечают | ⬜ |
+| 2 | `happy` | `POST /transfers` → 202 + PENDING → COMPLETED; Alice −10, Bob +10, `balance_sum` не изменилась | ⬜ |
+| 3 | `message` | запись в `transfer.requested.v1`: ключ = `fromAccountId`, видны партиция и оффсет | ⬜ |
+| 4 | `durability` | account-service остановлен → 3 перевода PENDING, lag = 3 → старт → все COMPLETED, lag = 0 | ⬜ |
+| 5 | `duplicate` | та же запись (key + value) отправлена дважды → деньги сдвинулись один раз, в логе один `already committed` | ⬜ |
+| 6 | `replay` | `--reset-offsets --to-earliest` → все сообщения переиграны, балансы и сумма не изменились | ⬜ |
+| — | `failed-replay` | FAILED-перевод при replay исполняется, если денег стало хватать (known gap) | ⬜ |
+
+### Почему это работает (впиши своими словами после прогона)
+
+- **Durability:** где лежали сообщения, пока консьюмер был остановлен, и откуда он узнал, с какого
+  места читать после старта (лог топика на диске брокера + закоммиченный оффсет группы в
+  `__consumer_offsets`).
+- **Duplicate / replay:** почему повтор не двигает деньги (insert маркера `ProcessedTransfer` по PK
+  `transferId` в той же транзакции, что и движение денег → `DuplicateTransferMessageException` →
+  переиздаём COMPLETED → transfer-service: гвард, no-op).
+
+### Фактический вывод
+
+<!-- вставь ключевые строки вывода скрипта / kafka.sh consume / group -->
+
+---
+
+## Архив: W1 Day 5 — синхронная версия (неактуально после W2 Day 2)
 
 Проверяем, что весь стек поднимается одной командой и перевод проходит **через контейнеры**:
 `transfer-service` → `account-service` → две отдельные БД.
