@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "vmware.vscode-boot-dev-pack",
+    "EditorConfig.EditorConfig",
+    "redhat.vscode-yaml",
+    "SonarSource.sonarlint-vscode"
+  ]
+}

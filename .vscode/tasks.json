@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Format (Spotless)",
+      "type": "shell",
+      "command": "./mvnw spotless:apply",
+      "windows": { "command": ".\\mvnw.cmd spotless:apply" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Verify",
+      "type": "shell",
+      "command": "./mvnw verify",
+      "windows": { "command": ".\\mvnw.cmd verify" },
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$javac"]
+    },
+    {
+      "label": "Verify including integration tests (Docker)",
+      "type": "shell",
+      "command": "./mvnw verify -Pintegration",
+      "windows": { "command": ".\\mvnw.cmd verify -Pintegration" },
+      "problemMatcher": ["$javac"]
+    }
+  ]
+}

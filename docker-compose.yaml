@@ -38,11 +38,11 @@ services:
       - transfer_data:/var/lib/postgresql/data
     networks:
       - backend
-  
+
   transfer-service:
     build:
-      context: transfer_service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: transfer_service/Dockerfile
     ports:
       - 8082:8082
     depends_on:
@@ -61,8 +61,8 @@ services:
 
   account-service:
     build:
-      context: account-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: account-service/Dockerfile
     ports:
       - 8081:8081
     depends_on:
@@ -78,7 +78,7 @@ services:
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
     networks:
       - backend
-  
+
   rabbitmq:
     image: rabbitmq:4.3.2-management
     container_name: rabbitmq
