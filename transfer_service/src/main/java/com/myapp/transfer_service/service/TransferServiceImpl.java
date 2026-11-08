@@ -1,9 +1,5 @@
 package com.myapp.transfer_service.service;
 
-import java.util.UUID;
-
-import org.springframework.stereotype.Service;
-
 import com.myapp.transfer_service.client.AccountClient;
 import com.myapp.transfer_service.dto.external.ExternalAccountResponse;
 import com.myapp.transfer_service.dto.request.TransferRequestDto;
@@ -11,12 +7,13 @@ import com.myapp.transfer_service.dto.response.TransferCreateResponseDto;
 import com.myapp.transfer_service.dto.response.TransferResponseDto;
 import com.myapp.transfer_service.exception.TransferInvalidException;
 import com.myapp.transfer_service.exception.TransferNotFoundException;
+import com.myapp.transfer_service.messaging.TransferRequestedPublisher;
 import com.myapp.transfer_service.messaging.status.TransferOutcome;
 import com.myapp.transfer_service.model.Transfer;
 import com.myapp.transfer_service.repository.TransferRepository;
-import com.myapp.transfer_service.service.messaging.TransferRequestedPublisher;
-
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -38,9 +35,9 @@ public class TransferServiceImpl implements TransferService {
     @Override
     public TransferResponseDto findTransferById(UUID id) {
         return TransferResponseDto.fromEntity(
-            transferRepository.findById(id)
-            .orElseThrow(() -> new TransferNotFoundException(id))
-        );
+                transferRepository
+                        .findById(id)
+                        .orElseThrow(() -> new TransferNotFoundException(id)));
     }
 
     @Override
@@ -56,7 +53,11 @@ public class TransferServiceImpl implements TransferService {
     }
 
     @Override
-    public void updateTransferStatus(UUID transferId, String failureReason, TransferOutcome outcome) {
+    public void updateTransferStatus(
+            UUID transferId, String failureReason, TransferOutcome outcome) {
+        if (outcome == null) {
+            throw new IllegalArgumentException("Transfer outcome is required");
+        }
         if (outcome == TransferOutcome.COMPLETED) {
             transferStatusService.markCompleted(transferId);
         } else {

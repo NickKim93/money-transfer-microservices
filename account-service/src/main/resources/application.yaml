@@ -3,4 +3,23 @@ server:
 spring:
   application:
     name: account-service
-
+  kafka:
+    # bootstrap-servers задаётся в профиле (local / docker)
+    consumer:
+      # group-id задаётся в @KafkaListener (KafkaNames.ACCOUNT_SERVICE_GROUP)
+      # earliest срабатывает, только если у группы нет закоммиченного оффсета
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # ErrorHandlingDeserializer — защита от poison pill: битый JSON не зацикливает партицию
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        "[spring.deserializer.value.delegate.class]": org.springframework.kafka.support.serializer.JsonDeserializer
+        # продьюсер не шлёт type headers: у DTO разные пакеты, контракт — JSON, а не имя класса
+        "[spring.json.use.type.headers]": false
+        "[spring.json.value.default.type]": com.myapp.account_service.messaging.dto.TransferRequestedMessage
+        "[spring.json.trusted.packages]": com.myapp.account_service.messaging.dto
+  jpa:
+    open-in-view: false
+logging:
+  pattern:
+    level: "%5p [requestId:%X{requestId:-} transferId:%X{transferId:-} eventId:%X{eventId:-}]"

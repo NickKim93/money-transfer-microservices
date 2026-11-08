@@ -8,3 +8,16 @@ clients:
 spring:
   application:
     name: transfer_service
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        "[enable.idempotence]": true
+        "[spring.json.add.type.headers]": false
+  jpa:
+    open-in-view: false
+logging:
+  pattern:
+    level: "%5p [requestId:%X{requestId:-} transferId:%X{transferId:-} eventId:%X{eventId:-}]"

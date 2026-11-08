@@ -1,23 +1,19 @@
 package com.myapp.transfer_service.service;
 
-import java.util.UUID;
-
-import org.springframework.stereotype.Service;
-
 import com.myapp.transfer_service.dto.request.TransferRequestDto;
 import com.myapp.transfer_service.exception.TransferNotFoundException;
 import com.myapp.transfer_service.model.Status;
 import com.myapp.transfer_service.model.Transfer;
 import com.myapp.transfer_service.repository.TransferRepository;
-
-import jakarta.transaction.Transactional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Переходы статуса перевода. Result-события приходят at-least-once,
- * поэтому переходы защищены гвардом: из терминального статуса не уходим,
- * повтор в тот же статус — no-op.
+ * Переходы статуса перевода. Result-события приходят at-least-once, поэтому переходы защищены
+ * гвардом: из терминального статуса не уходим, повтор в тот же статус — no-op.
  */
 @Slf4j
 @Service
@@ -28,13 +24,13 @@ public class TransferStatusService {
 
     @Transactional
     public Transfer createPending(TransferRequestDto request) {
-        Transfer transfer = Transfer
-            .builder()
-            .fromAccountId(request.fromAccountId())
-            .toAccountId(request.toAccountId())
-            .status(Status.PENDING)
-            .amount(request.amount())
-            .build();
+        Transfer transfer =
+                Transfer.builder()
+                        .fromAccountId(request.fromAccountId())
+                        .toAccountId(request.toAccountId())
+                        .status(Status.PENDING)
+                        .amount(request.amount())
+                        .build();
 
         return transferRepository.save(transfer);
     }
@@ -46,6 +42,7 @@ public class TransferStatusService {
             return transfer;
         }
         transfer.setStatus(Status.COMPLETED);
+        transfer.setFailureReason(null);
         return transferRepository.save(transfer);
     }
 
@@ -60,15 +57,16 @@ public class TransferStatusService {
         return transferRepository.save(transfer);
     }
 
-    public Transfer getTransferOrThrow(UUID transferId) {
-        return transferRepository.findById(transferId)
+    private Transfer getTransferOrThrow(UUID transferId) {
+        return transferRepository
+                .findById(transferId)
                 .orElseThrow(() -> new TransferNotFoundException(transferId));
     }
 
     /**
-     * Повтор в тот же терминальный статус — штатный дубль (info).
-     * Попытка уйти из одного терминального статуса в другой — аномалия (warn),
-     * но не исключение: иначе листенер уйдёт в бесконечный redelivery.
+     * Повтор в тот же терминальный статус — штатный дубль (info). Попытка уйти из одного
+     * терминального статуса в другой — аномалия (warn), но не исключение: иначе листенер уйдёт в
+     * бесконечный redelivery.
      */
     private boolean canTransition(Transfer transfer, Status target) {
         Status current = transfer.getStatus();
@@ -78,8 +76,11 @@ public class TransferStatusService {
         if (current == target) {
             log.info("Transfer {} already {}, no-op", transfer.getId(), current);
         } else {
-            log.warn("Transfer {} is {} (terminal), ignoring transition to {}",
-                    transfer.getId(), current, target);
+            log.warn(
+                    "Transfer {} is {} (terminal), ignoring transition to {}",
+                    transfer.getId(),
+                    current,
+                    target);
         }
         return false;
     }

@@ -13,7 +13,7 @@
     <module name="OneStatementPerLine"/>
     <module name="OuterTypeFilename"/>
     <module name="IllegalImport">
-      <property name="illegalPkgs" value="sun,com.sun"/>
+      <property name="illegalPkgs" value="sun"/>
     </module>
     <module name="RegexpSinglelineJava">
       <property name="format" value="System\.(out|err)\.|\.printStackTrace\("/>

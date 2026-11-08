@@ -1,7 +1,8 @@
 # transfer-service
 
 Второй сервис системы (Неделя 2, событийная версия). Оркеструет перевод: принимает запрос,
-ведёт статус и общается с `account-service` **через события** (RabbitMQ). Своя БД `transfer_db`.
+ведёт статус и общается с `account-service` **через события**: `TransferRequested` — в Kafka,
+`TransferResult` — из RabbitMQ (до W3 Day 2). Своя БД `transfer_db`.
 
 > Статус: **Неделя 2, День 2 — событийная оркестрация.** Перевод идёт через события
 > (`TransferRequested` → обработка в account-service → `TransferResult` → статус), а не через
@@ -11,7 +12,7 @@
 
 ## Стек
 - Java 21, Spring Boot 3.5
-- Spring AMQP (RabbitMQ), Spring Data JPA, PostgreSQL
+- Spring for Apache Kafka (продьюсер `transfer.requested.v1`), Spring AMQP (RabbitMQ, result-путь), Spring Data JPA, PostgreSQL
 - Spring Web (`RestClient`) — только для диагностического эндпоинта
 - Docker (multi-stage) + docker-compose
 - Порт приложения: 8082 · БД: `transfer_db` (в docker — `transfer-db:5432`, на хосте — `localhost:5436`)
@@ -36,7 +37,7 @@
 
 ```bash
 cd ../          # java-prep/
-docker compose up -d account-db transfer-db    # только БД: 5435 / 5436
+docker compose up -d account-db transfer-db kafka rabbitmq    # БД 5435 / 5436, Kafka 29092, RabbitMQ 5672
 ```
 
 Затем сами приложения (каждое из своей папки, профиль `local`):

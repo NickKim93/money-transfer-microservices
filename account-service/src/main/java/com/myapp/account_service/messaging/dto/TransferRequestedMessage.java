@@ -5,10 +5,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record TransferRequestedMessage(
-    UUID eventId,
-    UUID transferId,
-    UUID fromAccountId,
-    UUID toAccountId,
-    BigDecimal amount,
-    Instant occurredAt
-) {}
+        UUID eventId,
+        UUID transferId,
+        UUID fromAccountId,
+        UUID toAccountId,
+        BigDecimal amount,
+        Instant occurredAt) {}

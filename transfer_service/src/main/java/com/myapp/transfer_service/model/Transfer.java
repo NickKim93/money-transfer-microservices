@@ -1,21 +1,21 @@
 package com.myapp.transfer_service.model;
 
-import java.time.Instant;
-import java.util.UUID;
-import java.math.BigDecimal;
-
-import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import org.hibernate.annotations.CreationTimestamp;
+import jakarta.persistence.Version;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
 @Builder
@@ -25,8 +25,10 @@ import lombok.NoArgsConstructor;
 public class Transfer {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Version private Long version;
 
     private UUID fromAccountId;
 
@@ -41,7 +43,7 @@ public class Transfer {
 
     private String failureReason;
 
-    @Column(precision=19, scale=4)
+    @Column(precision = 19, scale = 4)
     private BigDecimal amount;
 
     public void setStatus(Status status) {

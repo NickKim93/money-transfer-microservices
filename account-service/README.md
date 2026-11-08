@@ -3,8 +3,9 @@
 Spring Boot сервис управления счетами (Неделя 2, событийная версия). Java 21 / Maven,
 своя БД PostgreSQL `account_db`. Порт приложения — **8081**.
 
-Помимо REST-CRUD по счетам, слушает событие `TransferRequested` из RabbitMQ, двигает деньги
-между двумя счетами **одной локальной `@Transactional`** и публикует `TransferResult`.
+Помимо REST-CRUD по счетам, слушает событие `TransferRequested` из Kafka (топик
+`transfer.requested.v1`, группа `account-service`), двигает деньги
+между двумя счетами **одной локальной `@Transactional`** и публикует `TransferResult` в RabbitMQ (до W3 Day 2).
 
 > Часть стека `java-prep`. Запуск всего стека в контейнерах — в [корневом README](../README.md).
 > Этот файл описывает сам модуль и локальную разработку (профиль `local`).
@@ -27,7 +28,7 @@ src/main/java/com/myapp/account_service
 +-- controller      # REST-контроллеры
 +-- dto             # request / response DTO
 +-- exception       # иерархия исключений + GlobalExceptionHandler
-+-- messaging       # события (dto/status), RabbitMQ config, имена очередей/ключей
++-- messaging       # события (dto/status), Kafka-листенер, Rabbit result-publisher, KafkaNames/RabbitNames
 +-- model           # JPA-сущности и базовые классы
 +-- repository       # слой persistence
 +-- service         # бизнес-логика (+ service/messaging: listener и publisher)

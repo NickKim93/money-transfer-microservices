@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitTransferConfig {
-    
+
     @Bean
     public TopicExchange transferExchange() {
         return new TopicExchange(RabbitNames.TRANSFER_EXCHANGE);
@@ -24,10 +24,9 @@ public class RabbitTransferConfig {
 
     @Bean
     public Binding transferResultBinding() {
-        return BindingBuilder
-            .bind(transferResultQueue())
-            .to(transferExchange())
-            .with(RabbitNames.TRANSFER_RESULT_ROUTING_KEY);
+        return BindingBuilder.bind(transferResultQueue())
+                .to(transferExchange())
+                .with(RabbitNames.TRANSFER_RESULT_ROUTING_KEY);
     }
 
     @Bean

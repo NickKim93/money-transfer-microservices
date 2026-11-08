@@ -1,7 +1,13 @@
 package com.myapp.transfer_service.controller;
 
+import com.myapp.transfer_service.dto.external.ExternalAccountResponse;
+import com.myapp.transfer_service.dto.request.TransferRequestDto;
+import com.myapp.transfer_service.dto.response.TransferCreateResponseDto;
+import com.myapp.transfer_service.dto.response.TransferResponseDto;
+import com.myapp.transfer_service.service.TransferService;
+import jakarta.validation.Valid;
 import java.util.UUID;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,16 +15,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.myapp.transfer_service.dto.external.ExternalAccountResponse;
-import com.myapp.transfer_service.dto.request.TransferRequestDto;
-import com.myapp.transfer_service.dto.response.TransferCreateResponseDto;
-import com.myapp.transfer_service.dto.response.TransferResponseDto;
-import com.myapp.transfer_service.service.TransferService;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -38,8 +34,8 @@ public class TransferController {
     }
 
     @PostMapping("/transfers")
-    public ResponseEntity<TransferCreateResponseDto> makeTransfer(@RequestBody @Valid TransferRequestDto transferRequestDto) {
+    public ResponseEntity<TransferCreateResponseDto> makeTransfer(
+            @RequestBody @Valid TransferRequestDto transferRequestDto) {
         return ResponseEntity.accepted().body(transferService.createTransfer(transferRequestDto));
     }
-    
 }

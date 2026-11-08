@@ -8,8 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class TransferServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(TransferServiceApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(TransferServiceApplication.class, args);
+    }
 }

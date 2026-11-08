@@ -12,9 +12,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-      show-sql: true
   rabbitmq:
     host: localhost
     port: 5672
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+  kafka:
+    bootstrap-servers: localhost:${KAFKA_EXTERNAL_PORT:29092}
